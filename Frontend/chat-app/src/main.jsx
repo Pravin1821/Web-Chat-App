@@ -3,15 +3,16 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
-import "./styles/common.css";
-import "./styles/auth.css";
-import "./styles/chat.css";
+import "./tailwind.css";
+import "./index.css";
 
 const root = createRoot(document.getElementById("root"));
 root.render(
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
+  <BrowserRouter
+    future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+  >
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </BrowserRouter>
 );

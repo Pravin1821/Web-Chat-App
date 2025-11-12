@@ -3,9 +3,12 @@ package com.sk.chatapp.service;
 import com.sk.chatapp.dto.ChatMessageDto;
 import com.sk.chatapp.entity.Message;
 import com.sk.chatapp.repository.MessageRepository;
+import com.sk.chatapp.entity.User;
+import com.sk.chatapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 
 @Service
 public class ChatService {
@@ -13,24 +16,27 @@ public class ChatService {
     @Autowired
     private MessageRepository messageRepository;
 
-    public void saveRoomMessage(ChatMessageDto dto) {
+    public void saveRoomMessage(ChatMessageDto dto, User sender) {
         Message message = Message.builder()
-                .sender(dto.getSender())
                 .roomId(dto.getRoomId())
+                .sender(sender)
                 .content(dto.getContent())
-                .timestamp(LocalDateTime.now())
+                .isPrivate(false)
+                .createdAt(Instant.now())
                 .build();
+
         messageRepository.save(message);
     }
 
-    public void savePrivateMessage(ChatMessageDto dto) {
+    public void savePrivateMessage(ChatMessageDto dto, User sender) {
         Message message = Message.builder()
-                .sender(dto.getSender())
-                .receiver(dto.getTargetUser())
+                .sender(sender)
+                .targetUser(dto.getTargetUser())
                 .content(dto.getContent())
-                .timestamp(LocalDateTime.now())
+                .isPrivate(true)
+                .createdAt(Instant.now())
                 .build();
+
         messageRepository.save(message);
     }
 }
-

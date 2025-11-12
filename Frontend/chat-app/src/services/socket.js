@@ -1,40 +1,53 @@
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
+import { io } from "socket.io-client";
 
-let client = null;
+const SOCKET_URL = "http://localhost:9092";
 
-export function createSocket(token) {
-  if (client && client.connected) return client;
-  client = new Client({
-    webSocketFactory: () => new SockJS("/ws"),
-    connectHeaders: { Authorization: `Bearer ${token}` },
-    debug: () => {},
+// We'll create the socket lazily so we can include the username in the handshake query.
+let socket = null;
+
+export function connectSocket(username) {
+  if (socket && socket.connected) return socket;
+  socket = io(SOCKET_URL, {
+    transports: ["websocket", "polling"],
+    query: { username },
   });
-  return client;
+
+  socket.on("connect", () => {
+    console.log("Socket connected:", socket.id);
+  });
+
+  // debug
+  socket.on("connect_error", (err) => {
+    console.error("Socket connect_error:", err);
+  });
+
+  return socket;
 }
 
-export function activateSocket({
-  token,
-  onConnect,
-  onMessage,
-  onPrivate,
-  onPresence,
-}) {
-  const c = createSocket(token);
-  c.onConnect = (frame) => {
-    if (onConnect) onConnect(frame);
-  };
-  c.onStompError = (frame) => console.error("STOMP error", frame);
-  c.activate();
-  // helper subscriptions will be created by the caller using c.subscribe
-  return c;
+export function getSocket() {
+  return socket;
 }
 
-export function disconnectSocket() {
-  if (client) {
-    try {
-      client.deactivate();
-    } catch (e) {}
-    client = null;
-  }
-}
+// helper to join a room (server expects a String roomId)
+export const joinRoom = (roomId) => {
+  if (!socket) return;
+  socket.emit("joinRoom", roomId);
+};
+
+// send message - server expects event name "sendMessage" with ChatMessageDto structure
+export const sendMessage = (roomId, username, text) => {
+  if (!socket) return;
+  socket.emit("sendMessage", {
+    roomId: String(roomId),
+    sender: username,
+    content: text,
+    isPrivate: false,
+  });
+};
+
+export default {
+  connectSocket,
+  getSocket,
+  joinRoom,
+  sendMessage,
+};

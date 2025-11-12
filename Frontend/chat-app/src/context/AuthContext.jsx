@@ -1,54 +1,47 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import api from "../services/api";
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("me"));
-    } catch {
-      return null;
-    }
-  });
-  const [token, setToken] = useState(
-    () => localStorage.getItem("accessToken") || ""
-  );
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
 
   useEffect(() => {
-    if (token) api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    else delete api.defaults.headers.common["Authorization"];
+    if (token) {
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
   }, [token]);
 
-  const login = async ({ usernameOrEmail, password }) => {
-    const res = await api.post("/auth/login", { usernameOrEmail, password });
-    const accessToken = res.data.accessToken || res.data.token;
-    const me = res.data.user || { username: usernameOrEmail };
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("me", JSON.stringify(me));
-    setToken(accessToken);
-    setUser(me);
-    return me;
+  const login = async (credentials) => {
+    try {
+      const { usernameOrEmail, password } = credentials;
+      const data = await api.post("/auth/login", {
+        usernameOrEmail,
+        password,
+      });
+      setUser(data.data.user);
+      setToken(data.data.accessToken);
+      return data.data;
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const register = async ({ username, email, password }) => {
-    await api.post("/auth/register", { username, email, password });
-  };
-
-  const logout = () => {
-    setToken("");
-    setUser(null);
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("me");
+  const register = async (userData) => {
+    try {
+      const response = await api.post("/auth/register", userData);
+      return response.data;
+    } catch (err) {
+      throw err;
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, login, register }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext);

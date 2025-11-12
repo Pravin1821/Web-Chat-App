@@ -1,8 +1,7 @@
 package com.sk.chatapp.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-
+import lombok.*;
 import java.time.Instant;
 
 @Entity
@@ -10,6 +9,10 @@ import java.time.Instant;
         @Index(columnList = "room_id"),
         @Index(columnList = "target_user")
 })
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Message {
 
@@ -36,9 +39,7 @@ public class Message {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
-    public Message() { }
-
-    // convenience constructors
+    // Convenience constructors
     public Message(String roomId, User sender, String content) {
         this.roomId = roomId;
         this.sender = sender;
@@ -53,57 +54,5 @@ public class Message {
         this.content = content;
         this.isPrivate = true;
         this.createdAt = Instant.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getRoomId() {
-        return roomId;
-    }
-
-    public void setRoomId(String roomId) {
-        this.roomId = roomId;
-    }
-
-    public User getSender() {
-        return sender;
-    }
-
-    public void setSender(User sender) {
-        this.sender = sender;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public boolean isPrivate() {
-        return isPrivate;
-    }
-
-    public void setPrivate(boolean aPrivate) {
-        isPrivate = aPrivate;
-    }
-
-    public String getTargetUser() {
-        return targetUser;
-    }
-
-    public void setTargetUser(String targetUser) {
-        this.targetUser = targetUser;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
     }
 }
